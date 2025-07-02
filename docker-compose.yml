@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: publicidade_db
+    restart: always
+    environment:
+      POSTGRES_DB: publicidade_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  frontend:
+    image: node:20-alpine
+    container_name: publicidade_frontend
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend:/app
+    working_dir: /app
+    command: sh -c "npm install && npm start -- --host 0.0.0.0 --poll 1000"
+
+volumes:
+  pgdata:
