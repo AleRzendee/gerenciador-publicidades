@@ -12,15 +12,5 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  frontend:
-    image: node:20-alpine
-    container_name: publicidade_frontend
-    ports:
-      - "4200:4200"
-    volumes:
-      - ./frontend:/app
-    working_dir: /app
-    command: sh -c "npm install -g @angular/cli && ng new frontend-app --directory . --routing --style=css --skip-install && npm install && npm start -- --host 0.0.0.0"
-
 volumes:
   pgdata:
