@@ -1,14 +1,10 @@
 <div class="p-4">
-  <h1 class="text-2xl font-bold mb-4">Gerenciador de Publicidades</h1>
-  <h2 class="text-xl">Conexão com Backend funcionando!</h2>
-  <p class="mt-4">Lista de estados vinda da API:</p>
-  <ul class="list-disc pl-5 mt-2" *ngIf="estados.length > 0; else loading">
+  <h1 class="text-2xl font-bold">Conexão Funcionando!</h1>
+  <p class="mt-4">Lista de estados vinda do backend:</p>
+  <ul>
     <li *ngFor="let estado of estados">
-      {{ estado.descricao }} ({{ estado.sigla }})
+      {{ estado.descricao }}
     </li>
   </ul>
-  <ng-template #loading>
-    <p>Carregando estados...</p>
-  </ng-template>
 </div>
-<router-outlet />
+<router-outlet></router-outlet>
