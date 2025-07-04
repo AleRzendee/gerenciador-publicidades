@@ -2,10 +2,9 @@
   <div class="p-toolbar-group-start">
     <img src="assets/logo-embras.png" alt="Logo Embras" height="30">
   </div>
-
   <div class="p-toolbar-group-end">
     <p-avatar 
-      image="https://i.imgur.com/u5tFwS3.png"
+      image="https://i.imgur.com/u5tFwS3.png" 
       shape="circle">
     </p-avatar>
   </div>
@@ -15,6 +14,29 @@
   <div class="flex justify-content-between align-items-center mb-4">
     <h1 class="text-3xl font-bold m-0">Gerenciamento de Publicidade</h1>
     <p-button label="Nova publicidade" icon="pi pi-plus"></p-button>
+  </div>
+
+  <div class="flex flex-column md:flex-row gap-3 mb-4">
+    <p-dropdown 
+      [options]="estados" 
+      [(ngModel)]="filtroEstado" 
+      optionLabel="descricao"
+      placeholder="Visualizar todos os Estados"
+      (onChange)="buscarPublicidades()"
+      styleClass="flex-grow-1 md:flex-grow-0 w-full md:w-20rem">
+    </p-dropdown>
+
+    <span class="p-input-icon-right flex-grow-1">
+      <i class="pi pi-search"></i>
+      <input 
+        pInputText 
+        type="text" 
+        [(ngModel)]="filtroTermo"
+        (input)="buscarPublicidades()"
+        placeholder="Buscar por título..." 
+        class="w-full"
+      />
+    </span>
   </div>
 
   <div *ngFor="let publicidade of publicidades" class="mb-4">

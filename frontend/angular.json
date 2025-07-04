@@ -25,7 +25,22 @@
                 "glob": "**/*",
                 "input": "public"
               },
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "node_modules/primeng/resources/",
+                "output": "/assets/primeng/"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/primeicons/",
+                "output": "/assets/primeicons/"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/primeflex/",
+                "output": "/assets/primeflex/"
+              }
             ],
             "styles": [
               "src/styles.css"
