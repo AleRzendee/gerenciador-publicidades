@@ -33,6 +33,23 @@ app.get('/api/estados', async (req: Request, res: Response) => {
   }
 });
 
+app.get('/api/publicidades', async (req: Request, res: Response) => {
+  try {
+    const query = `
+      SELECT p.*, string_agg(e.descricao, ', ') as estados
+      FROM cad_publicidade p
+      LEFT JOIN cad_publicidade_estado pe ON p.id = pe.id_publicidade
+      LEFT JOIN cad_estado e ON pe.id_estado = e.id
+      GROUP BY p.id
+      ORDER BY p.dt_inicio DESC
+    `;
+    const { rows } = await pool.query(query);
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro ao buscar publicidades:', err);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Backend rodando na porta http://localhost:${PORT}`);

@@ -1,0 +1,8 @@
+/*
+ Isso seleciona a tag 'img' que está dentro do nosso p-avatar
+ e define um tamanho fixo para ela, igual ao da logo.
+*/
+:host ::ng-deep p-avatar img {
+    width: 30px;
+    height: 30px;
+}
