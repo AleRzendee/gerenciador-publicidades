@@ -16,11 +16,7 @@ const pool = new Pool({
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Backend com Node.js/Express está no ar!');
-});
-
-//* Rota para buscar todos os estados para o dropdown
+// Rota para buscar todos os estados
 app.get('/api/estados', async (req: Request, res: Response) => {
   try {
     const { rows } = await pool.query('SELECT * FROM cad_estado ORDER BY descricao');
@@ -31,15 +27,15 @@ app.get('/api/estados', async (req: Request, res: Response) => {
   }
 });
 
-//* Rota para buscar todas as publicidades com seus estados (COM LÓGICA DE VIGÊNCIA)
+// Rota COMPLETA e CORRIGIDA para buscar publicidades
 app.get('/api/publicidades', async (req: Request, res: Response) => {
   try {
-    const hoje = new Date().toISOString().slice(0, 10); // Data de hoje no formato YYYY-MM-DD
+    const hoje = new Date().toISOString().slice(0, 10);
 
     let query = `
       SELECT 
         p.*, 
-        string_agg(e.descricao, ', ') as estados,
+        string_agg(e.sigla, ', ') as estados,
         CASE
           WHEN p.status = 'encerrada' THEN 'encerrada'
           WHEN '${hoje}' BETWEEN p.dt_inicio AND p.dt_fim THEN 'atual'
