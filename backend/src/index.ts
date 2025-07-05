@@ -7,10 +7,9 @@ import path from 'path';
 const app = express();
 const PORT = 8000;
 
-
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/'); 
+    cb(null, 'uploads/');
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -29,10 +28,10 @@ const pool = new Pool({
 
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static('uploads')); 
+// Middleware para servir os arquivos da pasta 'uploads' de forma pública
+app.use('/uploads', express.static('uploads'));
 
-//* --- Rotas da API ---
-
+// Rota GET para buscar publicidades
 app.get('/api/publicidades', async (req: Request, res: Response) => {
     try {
         const hoje = new Date().toISOString().slice(0, 10);
@@ -75,6 +74,7 @@ app.get('/api/publicidades', async (req: Request, res: Response) => {
       }
 });
 
+// Rota GET para buscar todos os estados
 app.get('/api/estados', async (req: Request, res: Response) => {
     try {
         const { rows } = await pool.query('SELECT * FROM cad_estado ORDER BY descricao');
@@ -85,16 +85,15 @@ app.get('/api/estados', async (req: Request, res: Response) => {
       }
 });
 
+// ROTA POST para criar uma nova publicidade
 app.post('/api/publicidades', upload.single('imagem'), async (req: Request, res: Response) => {
   const { titulo, descricao, botao_link, titulo_botao_link, dt_inicio, dt_fim, estados } = req.body;
   const imagemPath = req.file ? req.file.path.replace(/\\/g, '/') : null;
-
   const estadosArray = estados ? estados.split(',') : [];
 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-
     const publicidadeQuery = `
       INSERT INTO cad_publicidade (titulo, descricao, imagem, botao_link, titulo_botao_link, dt_inicio, dt_fim)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -111,10 +110,8 @@ app.post('/api/publicidades', upload.single('imagem'), async (req: Request, res:
         await client.query(assocQuery, [novaPublicidadeId, estadoId]);
       }
     }
-    
     await client.query('COMMIT');
     res.status(201).json({ message: 'Publicidade criada com sucesso!', id: novaPublicidadeId });
-
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Erro ao criar publicidade:', error);
