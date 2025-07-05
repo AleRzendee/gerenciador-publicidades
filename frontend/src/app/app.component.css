@@ -1,0 +1,12 @@
+.descricao-publicidade {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 40px;
+}
+
+.imagem-publicidade {
+    object-fit: cover;
+}

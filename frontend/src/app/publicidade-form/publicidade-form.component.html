@@ -1,1 +1,71 @@
-<p>Formulário de criação de publicidade.</p>
+<p-toast></p-toast>
+
+<form [formGroup]="formPublicidade" (ngSubmit)="salvar()" class="flex flex-column gap-3">
+  
+  <div class="field">
+    <label for="estados">Estados contemplados *</label>
+    <p-multiSelect 
+      id="estados"
+      [options]="estados" 
+      formControlName="estados"
+      placeholder="Selecione um ou mais estados"
+      optionLabel="descricao"
+      styleClass="w-full">
+    </p-multiSelect>
+  </div>
+
+  <div class="field">
+    <label for="titulo">Título *</label>
+    <input id="titulo" type="text" pInputText formControlName="titulo" class="w-full">
+  </div>
+
+  <div class="field">
+    <label for="descricao">Descrição *</label>
+    <textarea id="descricao" pInputTextarea formControlName="descricao" rows="3" class="w-full"></textarea>
+  </div>
+
+  <div class="formgrid grid">
+    <div class="field col">
+      <label for="titulo_botao">Título do botão *</label>
+      <input id="titulo_botao" type="text" pInputText formControlName="titulo_botao_link" class="w-full">
+    </div>
+    <div class="field col">
+      <label for="link_botao">Link do botão *</label>
+      <input id="link_botao" type="text" pInputText formControlName="link_botao" class="w-full">
+    </div>
+  </div>
+
+  <div class="formgrid grid">
+    <div class="field col">
+      <label for="dt_inicio">Data de publicação *</label>
+      <p-calendar id="dt_inicio" formControlName="dt_inicio" styleClass="w-full" dateFormat="dd/mm/yy"></p-calendar>
+    </div>
+    <div class="field col">
+      <label for="dt_fim">Data final da publicação *</label>
+      <p-calendar id="dt_fim" formControlName="dt_fim" styleClass="w-full" dateFormat="dd/mm/yy"></p-calendar>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>IMAGEM DA PUBLICIDADE *</label>
+    <p-fileUpload 
+      name="imagem" 
+      mode="advanced"
+      chooseLabel="Anexar Imagem" 
+      (onSelect)="onFileSelect($event)"
+      (onRemove)="onFileRemove($event)"
+      (onClear)="onClear()"
+      [showUploadButton]="false"
+      [showCancelButton]="false"
+      [multiple]="false"
+      accept="image/*">
+      <ng-template pTemplate="content">
+        </ng-template>
+    </p-fileUpload>
+  </div>
+
+  <div class="flex justify-content-end gap-2 mt-4">
+    <p-button label="Cancelar" severity="secondary" (click)="cancelar()"></p-button>
+    <p-button label="Confirmar" type="submit" [disabled]="formPublicidade.invalid || !arquivoSelecionado"></p-button>
+  </div>
+</form>
