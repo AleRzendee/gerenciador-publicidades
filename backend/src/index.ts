@@ -1,17 +1,16 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import cors from 'cors';
 import { Pool } from 'pg';
 import multer from 'multer';
 import path from 'path';
 
+// --- CONFIGURAÇÕES INICIAIS ---
 const app = express();
 const PORT = 8000;
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
@@ -26,88 +25,84 @@ const pool = new Pool({
   port: 5432,
 });
 
+// --- MIDDLEWARES ---
 app.use(cors());
 app.use(express.json());
-// Middleware para servir os arquivos da pasta 'uploads' de forma pública
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Rota GET para buscar publicidades
-app.get('/api/publicidades', async (req: Request, res: Response) => {
+// --- ROTAS DA API ---
+
+// Rota GET para buscar todas as publicidades
+app.get('/api/publicidades', async (req, res) => {
     try {
         const hoje = new Date().toISOString().slice(0, 10);
-        let query = `
-          SELECT 
-            p.*, 
-            string_agg(e.sigla, ', ') as estados,
-            CASE
-              WHEN p.status = 'encerrada' THEN 'encerrada'
-              WHEN '${hoje}' BETWEEN p.dt_inicio AND p.dt_fim THEN 'atual'
-              WHEN p.dt_inicio > '${hoje}' THEN 'futura'
-              ELSE 'passada'
-            END as categoria_vigencia
+        let queryText = `
+          SELECT p.*, string_agg(e.sigla, ', ') as estados,
+          CASE
+            WHEN p.status = 'encerrada' THEN 'encerrada'
+            WHEN '${hoje}' BETWEEN p.dt_inicio AND p.dt_fim THEN 'atual'
+            WHEN p.dt_inicio > '${hoje}' THEN 'futura'
+            ELSE 'passada'
+          END as categoria_vigencia
           FROM cad_publicidade p
           LEFT JOIN cad_publicidade_estado pe ON p.id = pe.id_publicidade
           LEFT JOIN cad_estado e ON pe.id_estado = e.id
         `;
-        const params: any[] = [];
+        const queryParams: any[] = [];
         const whereClauses: string[] = [];
         let paramIndex = 1;
+
         if (req.query.estado_id) {
-          whereClauses.push(`p.id IN (SELECT id_publicidade FROM cad_publicidade_estado WHERE id_estado = $${paramIndex})`);
-          params.push(req.query.estado_id);
-          paramIndex++;
+          whereClauses.push(`p.id IN (SELECT id_publicidade FROM cad_publicidade_estado WHERE id_estado = $${paramIndex++})`);
+          queryParams.push(req.query.estado_id);
         }
         if (req.query.q) {
-          whereClauses.push(`p.titulo ILIKE $${paramIndex}`);
-          params.push(`%${req.query.q}%`);
-          paramIndex++;
+          whereClauses.push(`p.titulo ILIKE $${paramIndex++}`);
+          queryParams.push(`%${req.query.q}%`);
         }
+
         if (whereClauses.length > 0) {
-          query += ' WHERE ' + whereClauses.join(' AND ');
+          queryText += ' WHERE ' + whereClauses.join(' AND ');
         }
-        query += ` GROUP BY p.id ORDER BY p.dt_inicio DESC`;
-        const { rows } = await pool.query(query, params);
+        queryText += ` GROUP BY p.id ORDER BY p.dt_inicio DESC`;
+
+        const { rows } = await pool.query(queryText, queryParams);
         res.json(rows);
-      } catch (err) {
+    } catch (err) {
         console.error('Erro ao buscar publicidades:', err);
         res.status(500).json({ error: 'Erro interno do servidor' });
-      }
+    }
 });
 
 // Rota GET para buscar todos os estados
-app.get('/api/estados', async (req: Request, res: Response) => {
+app.get('/api/estados', async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT * FROM cad_estado ORDER BY descricao');
         res.json(rows);
-      } catch (err) {
+    } catch (err) {
         console.error('Erro ao buscar estados:', err);
         res.status(500).json({ error: 'Erro interno do servidor' });
-      }
+    }
 });
 
 // ROTA POST para criar uma nova publicidade
-app.post('/api/publicidades', upload.single('imagem'), async (req: Request, res: Response) => {
+app.post('/api/publicidades', upload.single('imagem'), async (req, res) => {
   const { titulo, descricao, botao_link, titulo_botao_link, dt_inicio, dt_fim, estados } = req.body;
   const imagemPath = req.file ? req.file.path.replace(/\\/g, '/') : null;
   const estadosArray = estados ? estados.split(',') : [];
-
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const publicidadeQuery = `
+    const q = `
       INSERT INTO cad_publicidade (titulo, descricao, imagem, botao_link, titulo_botao_link, dt_inicio, dt_fim)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id;
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;
     `;
-    const result = await client.query(publicidadeQuery, [titulo, descricao, imagemPath, botao_link, titulo_botao_link, dt_inicio, dt_fim]);
+    const result = await client.query(q, [titulo, descricao, imagemPath, botao_link, titulo_botao_link, dt_inicio, dt_fim]);
     const novaPublicidadeId = result.rows[0].id;
 
     if (estadosArray.length > 0) {
       for (const estadoId of estadosArray) {
-        const assocQuery = `
-          INSERT INTO cad_publicidade_estado (id_publicidade, id_estado) VALUES ($1, $2);
-        `;
-        await client.query(assocQuery, [novaPublicidadeId, estadoId]);
+        await client.query('INSERT INTO cad_publicidade_estado (id_publicidade, id_estado) VALUES ($1, $2);', [novaPublicidadeId, estadoId]);
       }
     }
     await client.query('COMMIT');
@@ -121,6 +116,26 @@ app.post('/api/publicidades', upload.single('imagem'), async (req: Request, res:
   }
 });
 
+// ROTA PATCH PARA ENCERRAR UMA PUBLICIDADE
+app.patch('/api/publicidades/:id/encerrar', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const q = `UPDATE cad_publicidade SET status = 'encerrada' WHERE id = $1 RETURNING *;`;
+    const result = await pool.query(q, [id]);
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: 'Publicidade não encontrada.' });
+    } else {
+      res.status(200).json({ message: 'Publicidade encerrada com sucesso!', data: result.rows[0] });
+    }
+  } catch (error) {
+    console.error('Erro ao encerrar publicidade:', error);
+    res.status(500).json({ error: 'Erro ao atualizar no banco de dados' });
+  }
+});
+
+
+
+// --- INICIA O SERVIDOR ---
 app.listen(PORT, () => {
   console.log(`Backend rodando na porta http://localhost:${PORT}`);
 });

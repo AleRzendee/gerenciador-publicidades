@@ -13,9 +13,10 @@ import { AvatarModule } from 'primeng/avatar';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { DialogModule } from 'primeng/dialog';
-import { MenuModule } from 'primeng/menu'; // <-- NOVO
-import { ConfirmDialogModule } from 'primeng/confirmdialog'; // <-- NOVO
-import { MenuItem, ConfirmationService } from 'primeng/api'; // <-- NOVO
+import { MenuModule } from 'primeng/menu';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { MenuItem, ConfirmationService, MessageService } from 'primeng/api'; // MessageService adicionado
+import { ToastModule } from 'primeng/toast'; // ToastModule adicionado
 
 // IMPORT DO FORMULÁRIO
 import { PublicidadeFormComponent } from './publicidade-form/publicidade-form.component';
@@ -43,13 +44,14 @@ interface Estado {
   imports: [
     CommonModule, RouterOutlet, FormsModule, DatePipe,
     ButtonModule, CardModule, TagModule, ToolbarModule, AvatarModule, DropdownModule, InputTextModule, DialogModule,
-    MenuModule, // <-- NOVO
-    ConfirmDialogModule, // <-- NOVO
+    MenuModule,
+    ConfirmDialogModule,
+    ToastModule, // Módulo para as mensagens
     PublicidadeFormComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  providers: [ConfirmationService] // <-- Adiciona o serviço para o pop-up funcionar
+  providers: [ConfirmationService, MessageService] // Adiciona os serviços
 })
 export class AppComponent implements OnInit {
   
@@ -62,38 +64,30 @@ export class AppComponent implements OnInit {
   displayDialog: boolean = false;
   private apiUrl = 'http://localhost:8000/api';
 
-  // Itens do menu de ações
   items: MenuItem[] = [];
+  publicidadeSelecionada: Publicidade | null = null;
 
   constructor(
     private http: HttpClient,
-    private confirmationService: ConfirmationService // Injeta o serviço
+    private confirmationService: ConfirmationService,
+    private messageService: MessageService // Injeta o serviço de mensagens
   ) {}
 
   ngOnInit() {
     this.buscarPublicidades();
     this.buscarEstados();
 
-    // Define os itens que aparecerão no menu
     this.items = [
-        { 
-          label: 'Editar', 
-          icon: 'pi pi-fw pi-pencil', 
-          command: () => {
-              // A lógica para abrir o formulário de edição virá aqui
-              console.log('Clicou em Editar');
-          }
-        },
-        { 
-          label: 'Encerrar', 
-          icon: 'pi pi-fw pi-times-circle', 
-          command: () => {
-              this.confirmarEncerramento();
-          }
-        }
+        { label: 'Editar', icon: 'pi pi-fw pi-pencil', command: () => this.editarPublicidade() },
+        { label: 'Encerrar', icon: 'pi pi-fw pi-times-circle', command: () => this.confirmarEncerramento() }
     ];
   }
 
+  abrirMenuAcoes(menu: any, event: Event, publicidade: Publicidade) {
+    this.publicidadeSelecionada = publicidade;
+    menu.toggle(event);
+  }
+  
   buscarEstados() {
     this.http.get<Estado[]>(`${this.apiUrl}/estados`).subscribe(data => {
       this.estados = [{ descricao: 'Visualizar todos os Estados', id: null }, ...data];
@@ -121,10 +115,11 @@ export class AppComponent implements OnInit {
     this.displayDialog = true;
   }
 
-  // Método que abre o pop-up de confirmação
   confirmarEncerramento() {
+    if (!this.publicidadeSelecionada) return;
+
     this.confirmationService.confirm({
-        message: 'Tem certeza que deseja encerrar esta publicidade?',
+        message: `Tem certeza que deseja encerrar a publicidade "${this.publicidadeSelecionada.titulo}"?`,
         header: 'Confirmação de Encerramento',
         icon: 'pi pi-info-circle',
         acceptLabel: 'Sim, encerrar',
@@ -132,9 +127,21 @@ export class AppComponent implements OnInit {
         acceptButtonStyleClass: 'p-button-danger',
         rejectButtonStyleClass: 'p-button-text',
         accept: () => {
-            console.log('Confirmou o encerramento!');
-            // A lógica real para chamar a API de encerramento virá aqui
+          this.http.patch(`${this.apiUrl}/publicidades/${this.publicidadeSelecionada?.id}/encerrar`, {}).subscribe({
+            next: () => {
+              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Publicidade encerrada!' });
+              this.buscarPublicidades();
+            },
+            error: () => {
+              this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível encerrar a publicidade.' });
+            }
+          });
         }
     });
+  }
+
+  editarPublicidade() {
+    if (!this.publicidadeSelecionada) return;
+    console.log('Abrir formulário de edição para:', this.publicidadeSelecionada);
   }
 }

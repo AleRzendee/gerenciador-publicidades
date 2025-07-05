@@ -1,3 +1,5 @@
+<p-toast></p-toast>
+
 <p-toolbar styleClass="px-5 py-3 surface-ground border-none border-bottom-1 surface-border">
   <div class="p-toolbar-group-start">
     <img src="assets/logo-embras.png" alt="Logo Embras" height="30">
@@ -55,7 +57,7 @@
             </div>
           </div>
           <p-menu #menu [model]="items" [popup]="true"></p-menu>
-          <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)" styleClass="p-button-text p-button-rounded"></p-button>
+          <p-button icon="pi pi-ellipsis-v" (click)="abrirMenuAcoes(menu, $event, p)" styleClass="p-button-text p-button-rounded"></p-button>
         </div>
       </p-card>
     </div>
@@ -86,7 +88,7 @@
             </div>
           </div>
           <p-menu #menuOutras [model]="items" [popup]="true"></p-menu>
-          <p-button icon="pi pi-ellipsis-v" (click)="menuOutras.toggle($event)" styleClass="p-button-text p-button-rounded"></p-button>
+          <p-button icon="pi pi-ellipsis-v" (click)="abrirMenuAcoes(menuOutras, $event, p)" styleClass="p-button-text p-button-rounded"></p-button>
         </div>
       </p-card>
     </div>
