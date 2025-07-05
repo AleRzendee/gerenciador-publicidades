@@ -15,8 +15,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { DialogModule } from 'primeng/dialog';
 import { MenuModule } from 'primeng/menu';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { MenuItem, ConfirmationService, MessageService } from 'primeng/api'; // MessageService adicionado
-import { ToastModule } from 'primeng/toast'; // ToastModule adicionado
+import { MenuItem, ConfirmationService, MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 // IMPORT DO FORMULÁRIO
 import { PublicidadeFormComponent } from './publicidade-form/publicidade-form.component';
@@ -44,14 +44,12 @@ interface Estado {
   imports: [
     CommonModule, RouterOutlet, FormsModule, DatePipe,
     ButtonModule, CardModule, TagModule, ToolbarModule, AvatarModule, DropdownModule, InputTextModule, DialogModule,
-    MenuModule,
-    ConfirmDialogModule,
-    ToastModule, // Módulo para as mensagens
+    MenuModule, ConfirmDialogModule, ToastModule,
     PublicidadeFormComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  providers: [ConfirmationService, MessageService] // Adiciona os serviços
+  providers: [ConfirmationService, MessageService]
 })
 export class AppComponent implements OnInit {
   
@@ -66,11 +64,12 @@ export class AppComponent implements OnInit {
 
   items: MenuItem[] = [];
   publicidadeSelecionada: Publicidade | null = null;
+  publicidadeParaEditar: Publicidade | null = null;
 
   constructor(
     private http: HttpClient,
     private confirmationService: ConfirmationService,
-    private messageService: MessageService // Injeta o serviço de mensagens
+    private messageService: MessageService
   ) {}
 
   ngOnInit() {
@@ -112,12 +111,23 @@ export class AppComponent implements OnInit {
   }
 
   abrirDialogNovaPublicidade() {
+    this.publicidadeParaEditar = null; // Garante que não estamos editando
     this.displayDialog = true;
+  }
+
+  editarPublicidade() {
+    if (!this.publicidadeSelecionada) return;
+    this.publicidadeParaEditar = this.publicidadeSelecionada;
+    this.displayDialog = true;
+  }
+  
+  fecharDialog() {
+    this.displayDialog = false;
+    this.publicidadeParaEditar = null;
   }
 
   confirmarEncerramento() {
     if (!this.publicidadeSelecionada) return;
-
     this.confirmationService.confirm({
         message: `Tem certeza que deseja encerrar a publicidade "${this.publicidadeSelecionada.titulo}"?`,
         header: 'Confirmação de Encerramento',
@@ -138,10 +148,5 @@ export class AppComponent implements OnInit {
           });
         }
     });
-  }
-
-  editarPublicidade() {
-    if (!this.publicidadeSelecionada) return;
-    console.log('Abrir formulário de edição para:', this.publicidadeSelecionada);
   }
 }

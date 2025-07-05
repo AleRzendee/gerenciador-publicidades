@@ -1,4 +1,5 @@
 <p-toast></p-toast>
+<h2 class="text-2xl font-bold mb-4">{{ isEditMode ? 'Editar Publicidade' : 'Nova Publicidade' }}</h2>
 
 <form [formGroup]="formPublicidade" (ngSubmit)="salvar()" class="flex flex-column gap-3">
   
@@ -31,7 +32,7 @@
     </div>
     <div class="field col">
       <label for="link_botao">Link do botão *</label>
-      <input id="link_botao" type="text" pInputText formControlName="link_botao" class="w-full">
+      <input id="link_botao" type="text" pInputText formControlName="botao_link" class="w-full">
     </div>
   </div>
 
@@ -48,24 +49,27 @@
 
   <div class="field">
     <label>IMAGEM DA PUBLICIDADE *</label>
+    <div *ngIf="isEditMode && imagemExistente" class="mb-2">
+      <img [src]="imagemExistente" alt="Imagem atual" style="width: 100px; height: auto;">
+      <p class="text-sm text-gray-500">Imagem atual. Envie um novo arquivo para substituir.</p>
+    </div>
     <p-fileUpload 
       name="imagem" 
       mode="advanced"
       chooseLabel="Anexar Imagem" 
       (onSelect)="onFileSelect($event)"
-      (onRemove)="onFileRemove($event)"
+      (onRemove)="onFileRemove()"
       (onClear)="onClear()"
       [showUploadButton]="false"
       [showCancelButton]="false"
       [multiple]="false"
       accept="image/*">
-      <ng-template pTemplate="content">
-        </ng-template>
+      <ng-template pTemplate="content"></ng-template>
     </p-fileUpload>
   </div>
 
   <div class="flex justify-content-end gap-2 mt-4">
     <p-button label="Cancelar" severity="secondary" (click)="cancelar()"></p-button>
-    <p-button label="Confirmar" type="submit" [disabled]="formPublicidade.invalid || !arquivoSelecionado"></p-button>
+    <p-button [label]="isEditMode ? 'Salvar Alterações' : 'Confirmar'" type="submit"></p-button>
   </div>
 </form>
