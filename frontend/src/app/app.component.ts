@@ -4,7 +4,7 @@ import { RouterOutlet } from '@angular/router';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 
-//* IMPORTS DO PRIMENG
+// IMPORTS DO PRIMENG
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
@@ -13,12 +13,11 @@ import { AvatarModule } from 'primeng/avatar';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { DialogModule } from 'primeng/dialog';
-import { MenuModule } from 'primeng/menu';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService } from 'primeng/api';
-import { MenuItem } from 'primeng/api';
+import { MenuModule } from 'primeng/menu'; // <-- NOVO
+import { ConfirmDialogModule } from 'primeng/confirmdialog'; // <-- NOVO
+import { MenuItem, ConfirmationService } from 'primeng/api'; // <-- NOVO
 
-//* IMPORT DO NOVO COMPONENTE DE FORMULÁRIO
+// IMPORT DO FORMULÁRIO
 import { PublicidadeFormComponent } from './publicidade-form/publicidade-form.component';
 
 // Interfaces
@@ -33,7 +32,6 @@ interface Publicidade {
   estados: string;
   categoria_vigencia: 'atual' | 'futura' | 'passada' | 'encerrada';
 }
-
 interface Estado {
   id: number | null;
   descricao: string;
@@ -44,50 +42,55 @@ interface Estado {
   standalone: true,
   imports: [
     CommonModule, RouterOutlet, FormsModule, DatePipe,
-    // Módulos PrimeNG
-    ButtonModule, CardModule, TagModule, ToolbarModule, AvatarModule, DropdownModule, InputTextModule,
-    DialogModule, MenuModule,
-    ConfirmDialogModule,
+    ButtonModule, CardModule, TagModule, ToolbarModule, AvatarModule, DropdownModule, InputTextModule, DialogModule,
+    MenuModule, // <-- NOVO
+    ConfirmDialogModule, // <-- NOVO
     PublicidadeFormComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  providers: [ConfirmationService]
+  providers: [ConfirmationService] // <-- Adiciona o serviço para o pop-up funcionar
 })
-
-
 export class AppComponent implements OnInit {
-
+  
   title = 'frontend-app';
   publicidadesAtuais: Publicidade[] = [];
   outrasPublicidades: Publicidade[] = [];
   estados: Estado[] = [];
   filtroEstado: Estado | null = null;
   filtroTermo: string = '';
+  displayDialog: boolean = false;
   private apiUrl = 'http://localhost:8000/api';
 
-  displayDialog: boolean = false;
-
+  // Itens do menu de ações
   items: MenuItem[] = [];
 
   constructor(
     private http: HttpClient,
-    private confirmationService: ConfirmationService
-  ) { }
+    private confirmationService: ConfirmationService // Injeta o serviço
+  ) {}
 
   ngOnInit() {
     this.buscarPublicidades();
     this.buscarEstados();
+
+    // Define os itens que aparecerão no menu
     this.items = [
-        { label: 'Editar', icon: 'pi pi-pencil', command: () => {
-            // Lógica para editar virá aqui
-            console.log('Clicou em Editar');
-        }},
-        { label: 'Encerrar', icon: 'pi pi-times-circle', command: () => {
-            // Lógica para encerrar virá aqui
-            console.log('Clicou em Encerrar');
-            this.confirmarEncerramento();
-        }}
+        { 
+          label: 'Editar', 
+          icon: 'pi pi-fw pi-pencil', 
+          command: () => {
+              // A lógica para abrir o formulário de edição virá aqui
+              console.log('Clicou em Editar');
+          }
+        },
+        { 
+          label: 'Encerrar', 
+          icon: 'pi pi-fw pi-times-circle', 
+          command: () => {
+              this.confirmarEncerramento();
+          }
+        }
     ];
   }
 
@@ -114,11 +117,11 @@ export class AppComponent implements OnInit {
     });
   }
 
-  // Método para abrir o dialog
   abrirDialogNovaPublicidade() {
     this.displayDialog = true;
   }
 
+  // Método que abre o pop-up de confirmação
   confirmarEncerramento() {
     this.confirmationService.confirm({
         message: 'Tem certeza que deseja encerrar esta publicidade?',
@@ -126,9 +129,11 @@ export class AppComponent implements OnInit {
         icon: 'pi pi-info-circle',
         acceptLabel: 'Sim, encerrar',
         rejectLabel: 'Cancelar',
+        acceptButtonStyleClass: 'p-button-danger',
+        rejectButtonStyleClass: 'p-button-text',
         accept: () => {
             console.log('Confirmou o encerramento!');
-            // A lógica para chamar a API de encerramento virá aqui
+            // A lógica real para chamar a API de encerramento virá aqui
         }
     });
   }
