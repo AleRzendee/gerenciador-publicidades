@@ -22,12 +22,12 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// ROTA GET para buscar todas as publicidades
+//* ROTA GET para buscar todas as publicidades
 app.get('/api/publicidades', async (req, res) => {
     try {
         const hoje = new Date().toISOString().slice(0, 10);
         let queryText = `
-          SELECT p.*, string_agg(e.sigla, ', ') as estados,
+          SELECT p.*, string_agg(e.descricao, ', ') as estados,
           CASE
             WHEN p.status = 'encerrada' THEN 'encerrada'
             WHEN '${hoje}' BETWEEN p.dt_inicio AND p.dt_fim THEN 'atual'
@@ -59,7 +59,7 @@ app.get('/api/publicidades', async (req, res) => {
     }
 });
 
-// Rota GET para buscar todos os estados
+//* Rota GET para buscar todos os estados
 app.get('/api/estados', async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT * FROM cad_estado ORDER BY descricao');
@@ -70,7 +70,7 @@ app.get('/api/estados', async (req, res) => {
     }
 });
 
-// ROTA POST para criar uma nova publicidade
+//* ROTA POST para criar uma nova publicidade
 app.post('/api/publicidades', upload.single('imagem'), async (req, res) => {
   const { titulo, descricao, botao_link, titulo_botao_link, dt_inicio, dt_fim, estados } = req.body;
   const imagemPath = req.file ? req.file.path.replace(/\\/g, '/') : null;
@@ -97,7 +97,7 @@ app.post('/api/publicidades', upload.single('imagem'), async (req, res) => {
   }
 });
 
-// Rota GET para buscar UMA publicidade por ID
+//* Rota GET para buscar UMA publicidade por ID
 app.get('/api/publicidades/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -114,7 +114,7 @@ app.get('/api/publicidades/:id', async (req, res) => {
     }
 });
   
-// ROTA POST para ATUALIZAR uma publicidade
+//* ROTA POST para ATUALIZAR uma publicidade
 app.post('/api/publicidades/:id', upload.single('imagem'), async (req, res) => {
     const { id } = req.params;
     const { titulo, descricao, botao_link, titulo_botao_link, dt_inicio, dt_fim, estados } = req.body;
@@ -149,7 +149,7 @@ app.post('/api/publicidades/:id', upload.single('imagem'), async (req, res) => {
     }
 });
 
-// ROTA PATCH PARA ENCERRAR UMA PUBLICIDADE
+//* ROTA PATCH PARA ENCERRAR UMA PUBLICIDADE
 app.patch('/api/publicidades/:id/encerrar', async (req, res) => {
   const { id } = req.params;
   try {
@@ -166,7 +166,6 @@ app.patch('/api/publicidades/:id/encerrar', async (req, res) => {
   }
 });
 
-// --- INICIA O SERVIDOR ---
 app.listen(PORT, () => {
   console.log(`Backend rodando na porta http://localhost:${PORT}`);
 });

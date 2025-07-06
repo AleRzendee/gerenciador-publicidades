@@ -1,14 +1,22 @@
-/* Limita a descrição a 2 linhas e adiciona "..." no final */
 .descricao-publicidade {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-height: 40px; /* Garante uma altura mínima para o alinhamento */
+    min-height: 40px;
 }
 
-/* Garante que a imagem do card não fique distorcida */
 .imagem-publicidade {
     object-fit: cover;
+}
+
+:host ::ng-deep .publicity-card .p-card {
+    box-shadow: none !important;
+    border: 1px solid var(--surface-d);
+}
+
+:host ::ng-deep .estado-tag .p-tag {
+    background-color: var(--surface-c);
+    color: var(--text-color);
 }

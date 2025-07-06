@@ -1,1 +1,6 @@
-/* You can add global styles to this file, and also import other style files */
+body {
+    margin: 0;
+    font-family: var(--font-family); /* Usa a fonte padrão do PrimeNG */
+    background-color: #F5F5F5; /* <-- Cor de fundo do site que você pediu */
+    color: var(--text-color);
+}
