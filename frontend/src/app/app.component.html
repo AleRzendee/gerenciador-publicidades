@@ -27,17 +27,17 @@
             <div>
               <div class="flex justify-content-between align-items-start mb-2">
                 <h2 class="text-xl font-bold mt-0 mb-0">{{ p.titulo }}</h2>
-                <p-tag value="Publicidade atual" styleClass="p-tag-success" severity="success"></p-tag>
+                <p-tag value="Publicidade atual" styleClass="p-tag-success"></p-tag>
               </div>
               <p class="mt-0 mb-3 text-gray-600">{{ p.descricao }}</p>
             </div>
             <div class="flex justify-content-between align-items-center text-sm text-gray-500 mt-auto">
               <div class="flex gap-2 flex-wrap">
-                <p-tag class="color-black bg-gray-200" *ngFor="let estado of p.estados?.split(', ')" [value]="estado" styleClass="estado-tag"></p-tag>
+                <p-tag *ngFor="let estado of p.estados?.split(', ')" [value]="estado" styleClass="estado-tag"></p-tag>
               </div>
               <div class="flex align-items-center">
                 <i class="pi pi-calendar mr-2"></i>
-                <span>Ativo até {{ p.dt_fim | date: 'dd/MM/yyyy' }}</span>
+                <span class="font-bold">Ativo até {{ p.dt_fim | date: 'dd/MM/yyyy' }}</span>
               </div>
             </div>
           </div>
@@ -66,7 +66,7 @@
                   <p-tag *ngFor="let estado of p.estados?.split(', ')" [value]="estado" styleClass="estado-tag"></p-tag>
               </div>
               <div class="flex align-items-center">
-                <div *ngIf="p.categoria_vigencia === 'futura'"><i class="pi pi-calendar-plus mr-2"></i><span>Será publicado em {{ p.dt_inicio | date: 'dd/MM/yyyy' }}</span></div>
+                <div *ngIf="p.categoria_vigencia === 'futura'"><i class="pi pi-calendar-plus mr-2"></i><span class="font-bold">Será publicado em {{ p.dt_inicio | date: 'dd/MM/yyyy' }}</span></div>
                 <div *ngIf="p.categoria_vigencia !== 'futura'"><i class="pi pi-calendar-times mr-2"></i><p-tag value="Encerrada" severity="warning"></p-tag></div>
               </div>
             </div>
