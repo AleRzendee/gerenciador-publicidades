@@ -79,12 +79,7 @@ export class PublicidadeFormComponent implements OnInit, OnChanges {
   }
 
   onFileSelect(event: any) { this.arquivoSelecionado = event.files[0]; }
-
-  // Método onFileRemove corrigido (não espera o argumento $event)
-  onFileRemove() { 
-    this.arquivoSelecionado = null;
-  }
-
+  onFileRemove() { this.arquivoSelecionado = null; }
   onClear() { this.arquivoSelecionado = null; }
   
   cancelar() { this.formCancelar.emit(); }

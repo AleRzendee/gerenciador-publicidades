@@ -1,22 +1,19 @@
-.descricao-publicidade {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-height: 40px;
+:host ::ng-deep .publicity-card .p-card {
+    box-shadow: none !important;
+    border: 1px solid var(--surface-d) !important;
+}
+
+:host ::ng-deep .estado-tag .p-tag {
+    background-color: #e9ecef !important;
+    color: #495057 !important;
+    font-weight: 500;
+}
+
+:host ::ng-deep .p-tag-success .p-tag {
+    background-color: #CAF1D8;
+    color: #136C34;
 }
 
 .imagem-publicidade {
     object-fit: cover;
-}
-
-:host ::ng-deep .publicity-card .p-card {
-    box-shadow: none !important;
-    border: 1px solid var(--surface-d);
-}
-
-:host ::ng-deep .estado-tag .p-tag {
-    background-color: var(--surface-c);
-    color: var(--text-color);
 }

@@ -1,3 +1,4 @@
+<p-toast></p-toast>
 <p-toolbar styleClass="px-5 py-3 surface-ground border-none border-bottom-1 surface-border">
   <div class="p-toolbar-group-start">
     <img src="assets/logo-embras.png" alt="Logo Embras" height="40">
@@ -12,7 +13,6 @@
     <h1 class="text-3xl font-bold m-0">Gerenciamento de Publicidade</h1>
     <p-button label="Nova publicidade" icon="pi pi-plus-circle" (click)="abrirDialogNovaPublicidade()"></p-button>
   </div>
-
   <div class="flex flex-column md:flex-row gap-3 mb-4">
     <p-dropdown [options]="estados" [(ngModel)]="filtroEstado" optionLabel="descricao" placeholder="Visualizar todos os Estados" (onChange)="buscarPublicidades()" styleClass="w-full md:w-20rem"></p-dropdown>
     <span class="p-input-icon-left w-full md:w-auto flex-grow-1"><i class="pi pi-search"></i><input pInputText type="text" [(ngModel)]="filtroTermo" (input)="buscarPublicidades()" placeholder="Buscar por título..." class="w-full"/></span>
@@ -23,26 +23,25 @@
       <p-card styleClass="publicity-card">
         <div class="flex flex-column sm:flex-row align-items-center sm:align-items-start gap-4">
           <img [src]="'http://localhost:8000/' + p.imagem" alt="Imagem da publicidade" class="w-9rem h-9rem sm:w-10rem sm:h-10rem border-round imagem-publicidade">
-          <div class="flex-grow-1 flex flex-column justify-content-between h-full">
+          <div class="flex-grow-1 flex flex-column justify-content-between" style="min-height: 10rem;">
             <div>
               <div class="flex justify-content-between align-items-start mb-2">
                 <h2 class="text-xl font-bold mt-0 mb-0">{{ p.titulo }}</h2>
-                <p-tag value="Publicidade atual" severity="success"></p-tag>
+                <p-tag value="Publicidade atual" styleClass="p-tag-success" severity="success"></p-tag>
               </div>
-              <p class="mt-0 mb-3 text-gray-600 descricao-publicidade">{{ p.descricao }}</p>
-              <div class="flex align-items-center gap-2 mb-3">
-                <i class="pi pi-tags text-gray-500"></i>
-                <div class="flex gap-2 flex-wrap">
-                  <p-tag *ngFor="let estado of p.estados?.split(', ')" [value]="estado" styleClass="estado-tag"></p-tag>
-                </div>
-              </div>
+              <p class="mt-0 mb-3 text-gray-600">{{ p.descricao }}</p>
             </div>
-            <div class="flex align-items-center text-sm text-gray-500 mt-auto">
-              <i class="pi pi-calendar mr-2"></i>
-              <span>Ativo até {{ p.dt_fim | date: 'dd/MM/yyyy' }}</span>
+            <div class="flex justify-content-between align-items-center text-sm text-gray-500 mt-auto">
+              <div class="flex gap-2 flex-wrap">
+                <p-tag class="color-black bg-gray-200" *ngFor="let estado of p.estados?.split(', ')" [value]="estado" styleClass="estado-tag"></p-tag>
+              </div>
+              <div class="flex align-items-center">
+                <i class="pi pi-calendar mr-2"></i>
+                <span>Ativo até {{ p.dt_fim | date: 'dd/MM/yyyy' }}</span>
+              </div>
             </div>
           </div>
-          <div class="ml-auto flex-shrink-0">
+          <div class="flex-shrink-0">
             <p-menu #menu [model]="items" [popup]="true"></p-menu>
             <p-button icon="pi pi-ellipsis-v" (click)="abrirMenuAcoes(menu, $event, p)" styleClass="p-button-text p-button-rounded"></p-button>
           </div>
@@ -57,21 +56,22 @@
       <p-card styleClass="publicity-card">
          <div class="flex flex-column sm:flex-row align-items-center sm:align-items-start gap-4">
           <img [src]="'http://localhost:8000/' + p.imagem" alt="Imagem da publicidade" class="w-9rem h-9rem sm:w-10rem sm:h-10rem border-round imagem-publicidade">
-          <div class="flex-grow-1 flex flex-column justify-content-between h-full">
+          <div class="flex-grow-1 flex flex-column justify-content-between" style="min-height: 10rem;">
             <div>
               <h2 class="text-xl font-bold mt-0 mb-2">{{ p.titulo }}</h2>
-              <p class="mt-0 mb-3 text-gray-600 descricao-publicidade">{{ p.descricao }}</p>
-              <div class="flex align-items-center gap-2 mb-3">
-                <i class="pi pi-tags text-gray-500"></i>
-                <div class="flex gap-2 flex-wrap">
-                    <p-tag *ngFor="let estado of p.estados?.split(', ')" [value]="estado" styleClass="estado-tag"></p-tag>
-                </div>
+              <p class="mt-0 mb-3 text-gray-600">{{ p.descricao }}</p>
+            </div>
+            <div class="flex justify-content-between align-items-center text-sm text-gray-500 mt-auto">
+              <div class="flex gap-2 flex-wrap">
+                  <p-tag *ngFor="let estado of p.estados?.split(', ')" [value]="estado" styleClass="estado-tag"></p-tag>
+              </div>
+              <div class="flex align-items-center">
+                <div *ngIf="p.categoria_vigencia === 'futura'"><i class="pi pi-calendar-plus mr-2"></i><span>Será publicado em {{ p.dt_inicio | date: 'dd/MM/yyyy' }}</span></div>
+                <div *ngIf="p.categoria_vigencia !== 'futura'"><i class="pi pi-calendar-times mr-2"></i><p-tag value="Encerrada" severity="warning"></p-tag></div>
               </div>
             </div>
-            <div class="flex align-items-center text-sm text-gray-500 mt-auto" *ngIf="p.categoria_vigencia === 'futura'"><i class="pi pi-calendar-plus mr-2"></i><span>Será publicado em {{ p.dt_inicio | date: 'dd/MM/yyyy' }}</span></div>
-            <div class="flex align-items-center text-sm text-gray-500 mt-auto" *ngIf="p.categoria_vigencia !== 'futura'"><i class="pi pi-calendar-times mr-2"></i><p-tag value="Encerrada" severity="warning"></p-tag></div>
           </div>
-          <div class="ml-auto flex-shrink-0">
+          <div class="flex-shrink-0">
             <p-menu #menuOutras [model]="items" [popup]="true"></p-menu>
             <p-button icon="pi pi-ellipsis-v" (click)="abrirMenuAcoes(menuOutras, $event, p)" styleClass="p-button-text p-button-rounded"></p-button>
           </div>

@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { Component, OnInit, PLATFORM_ID, Inject } from '@angular/core'; // Adiciona PLATFORM_ID e Inject
+import { isPlatformBrowser, CommonModule, DatePipe } from '@angular/common'; // Adiciona isPlatformBrowser
 import { RouterOutlet } from '@angular/router';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { MenuItem, ConfirmationService, MessageService } from 'primeng/api';
 
-// IMPORTS DO PRIMENG
+// Módulos do PrimeNG
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
@@ -15,10 +16,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { DialogModule } from 'primeng/dialog';
 import { MenuModule } from 'primeng/menu';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { MenuItem, ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
-// IMPORT DO FORMULÁRIO
+// Componente do Formulário
 import { PublicidadeFormComponent } from './publicidade-form/publicidade-form.component';
 
 // Interfaces
@@ -61,7 +61,6 @@ export class AppComponent implements OnInit {
   filtroTermo: string = '';
   displayDialog: boolean = false;
   private apiUrl = 'http://localhost:8000/api';
-
   items: MenuItem[] = [];
   publicidadeSelecionada: Publicidade | null = null;
   publicidadeParaEditar: Publicidade | null = null;
@@ -69,13 +68,17 @@ export class AppComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private confirmationService: ConfirmationService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    @Inject(PLATFORM_ID) private platformId: Object // Injeta o token para saber o ambiente
   ) {}
 
   ngOnInit() {
-    this.buscarPublicidades();
-    this.buscarEstados();
-
+    // ESTA É A CORREÇÃO: SÓ BUSCA OS DADOS SE ESTIVER NO NAVEGADOR
+    if (isPlatformBrowser(this.platformId)) {
+      this.buscarPublicidades();
+      this.buscarEstados();
+    }
+    
     this.items = [
         { label: 'Editar', icon: 'pi pi-fw pi-pencil', command: () => this.editarPublicidade() },
         { label: 'Encerrar', icon: 'pi pi-fw pi-times-circle', command: () => this.confirmarEncerramento() }
@@ -111,7 +114,7 @@ export class AppComponent implements OnInit {
   }
 
   abrirDialogNovaPublicidade() {
-    this.publicidadeParaEditar = null; // Garante que não estamos editando
+    this.publicidadeParaEditar = null;
     this.displayDialog = true;
   }
 

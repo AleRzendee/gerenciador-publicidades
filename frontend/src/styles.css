@@ -1,6 +1,6 @@
 body {
     margin: 0;
-    font-family: var(--font-family); /* Usa a fonte padrão do PrimeNG */
-    background-color: #F5F5F5; /* <-- Cor de fundo do site que você pediu */
+    font-family: var(--font-family);
+    background-color: #F5F5F5;
     color: var(--text-color);
 }
