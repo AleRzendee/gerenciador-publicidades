@@ -12,5 +12,26 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  backend:
+    build: ./backend
+    container_name: publicidade_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      # A variável que o backend usará para encontrar o banco
+      DATABASE_URL: postgresql://admin:password@db:5432/publicidade_db
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    container_name: publicidade_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
 volumes:
   pgdata:

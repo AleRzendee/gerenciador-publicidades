@@ -4,6 +4,7 @@ import { Pool } from 'pg';
 import multer from 'multer';
 import path from 'path';
 
+// --- CONFIGURAÇÕES INICIAIS ---
 const app = express();
 const PORT = 8000;
 
@@ -16,13 +17,21 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-const pool = new Pool({ user: 'admin', host: 'localhost', database: 'publicidade_db', password: 'password', port: 5432 });
+// --- CONEXÃO COM O BANCO DE DADOS CORRIGIDA ---
+// O new Pool() com a connectionString agora usa a variável de ambiente DATABASE_URL
+// que definimos no docker-compose.yml. Esta é a forma correta.
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
+// --- MIDDLEWARES ---
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-//* ROTA GET para buscar todas as publicidades
+// --- ROTAS DA API ---
+
+// Rota GET para buscar todas as publicidades
 app.get('/api/publicidades', async (req, res) => {
     try {
         const hoje = new Date().toISOString().slice(0, 10);
@@ -41,6 +50,7 @@ app.get('/api/publicidades', async (req, res) => {
         const queryParams: any[] = [];
         const whereClauses: string[] = [];
         let paramIndex = 1;
+
         if (req.query.estado_id) {
           whereClauses.push(`p.id IN (SELECT id_publicidade FROM cad_publicidade_estado WHERE id_estado = $${paramIndex++})`);
           queryParams.push(req.query.estado_id);
@@ -49,8 +59,12 @@ app.get('/api/publicidades', async (req, res) => {
           whereClauses.push(`p.titulo ILIKE $${paramIndex++}`);
           queryParams.push(`%${req.query.q}%`);
         }
-        if (whereClauses.length > 0) { queryText += ' WHERE ' + whereClauses.join(' AND '); }
+
+        if (whereClauses.length > 0) {
+          queryText += ' WHERE ' + whereClauses.join(' AND ');
+        }
         queryText += ` GROUP BY p.id ORDER BY p.dt_inicio DESC`;
+
         const { rows } = await pool.query(queryText, queryParams);
         res.json(rows);
     } catch (err) {
@@ -59,7 +73,7 @@ app.get('/api/publicidades', async (req, res) => {
     }
 });
 
-//* Rota GET para buscar todos os estados
+// Rota GET para buscar todos os estados
 app.get('/api/estados', async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT * FROM cad_estado ORDER BY descricao');
@@ -70,7 +84,7 @@ app.get('/api/estados', async (req, res) => {
     }
 });
 
-//* ROTA POST para criar uma nova publicidade
+// ROTA POST para criar uma nova publicidade
 app.post('/api/publicidades', upload.single('imagem'), async (req, res) => {
   const { titulo, descricao, botao_link, titulo_botao_link, dt_inicio, dt_fim, estados } = req.body;
   const imagemPath = req.file ? req.file.path.replace(/\\/g, '/') : null;
@@ -78,9 +92,13 @@ app.post('/api/publicidades', upload.single('imagem'), async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const q = `INSERT INTO cad_publicidade (titulo, descricao, imagem, botao_link, titulo_botao_link, dt_inicio, dt_fim) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;`;
+    const q = `
+      INSERT INTO cad_publicidade (titulo, descricao, imagem, botao_link, titulo_botao_link, dt_inicio, dt_fim)
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;
+    `;
     const result = await client.query(q, [titulo, descricao, imagemPath, botao_link, titulo_botao_link, dt_inicio, dt_fim]);
     const novaPublicidadeId = result.rows[0].id;
+
     if (estadosArray.length > 0) {
       for (const estadoId of estadosArray) {
         await client.query('INSERT INTO cad_publicidade_estado (id_publicidade, id_estado) VALUES ($1, $2);', [novaPublicidadeId, estadoId]);
@@ -97,12 +115,19 @@ app.post('/api/publicidades', upload.single('imagem'), async (req, res) => {
   }
 });
 
-//* Rota GET para buscar UMA publicidade por ID
+// Rota GET para buscar UMA publicidade por ID
 app.get('/api/publicidades/:id', async (req, res) => {
     const { id } = req.params;
     try {
-      const q = `SELECT p.*, (SELECT json_agg(e.*) FROM cad_publicidade_estado pe JOIN cad_estado e ON pe.id_estado = e.id WHERE pe.id_publicidade = p.id) as estados_obj FROM cad_publicidade p WHERE p.id = $1;`;
+      const q = `
+        SELECT 
+          p.*, 
+          (SELECT json_agg(e.*) FROM cad_publicidade_estado pe JOIN cad_estado e ON pe.id_estado = e.id WHERE pe.id_publicidade = p.id) as estados_obj
+        FROM cad_publicidade p
+        WHERE p.id = $1;
+      `;
       const result = await pool.query(q, [id]);
+  
       if (result.rowCount === 0) {
         res.status(404).json({ error: 'Publicidade não encontrada.' });
       } else {
@@ -114,30 +139,39 @@ app.get('/api/publicidades/:id', async (req, res) => {
     }
 });
   
-//* ROTA POST para ATUALIZAR uma publicidade
+// ROTA POST para ATUALIZAR uma publicidade
 app.post('/api/publicidades/:id', upload.single('imagem'), async (req, res) => {
     const { id } = req.params;
     const { titulo, descricao, botao_link, titulo_botao_link, dt_inicio, dt_fim, estados } = req.body;
     const imagemPath = req.file ? req.file.path.replace(/\\/g, '/') : null;
     const estadosArray = estados ? estados.split(',') : [];
+    
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      let updateQuery = `UPDATE cad_publicidade SET titulo = $1, descricao = $2, botao_link = $3, titulo_botao_link = $4, dt_inicio = $5, dt_fim = $6`;
+  
+      let updateQuery = `
+        UPDATE cad_publicidade
+        SET titulo = $1, descricao = $2, botao_link = $3, titulo_botao_link = $4, dt_inicio = $5, dt_fim = $6
+      `;
       const params: any[] = [titulo, descricao, botao_link, titulo_botao_link, dt_inicio, dt_fim];
+      
       if (imagemPath) {
         updateQuery += `, imagem = $${params.length + 1}`;
         params.push(imagemPath);
       }
+      
       updateQuery += ` WHERE id = $${params.length + 1} RETURNING *;`;
       params.push(id);
       await client.query(updateQuery, params);
+  
       await client.query('DELETE FROM cad_publicidade_estado WHERE id_publicidade = $1', [id]);
       if (estadosArray.length > 0) {
         for (const estadoId of estadosArray) {
           await client.query('INSERT INTO cad_publicidade_estado (id_publicidade, id_estado) VALUES ($1, $2);', [id, estadoId]);
         }
       }
+  
       await client.query('COMMIT');
       res.status(200).json({ message: 'Publicidade atualizada com sucesso!' });
     } catch (error) {
@@ -149,7 +183,7 @@ app.post('/api/publicidades/:id', upload.single('imagem'), async (req, res) => {
     }
 });
 
-//* ROTA PATCH PARA ENCERRAR UMA PUBLICIDADE
+// ROTA PATCH PARA ENCERRAR UMA PUBLICIDADE
 app.patch('/api/publicidades/:id/encerrar', async (req, res) => {
   const { id } = req.params;
   try {
@@ -166,6 +200,7 @@ app.patch('/api/publicidades/:id/encerrar', async (req, res) => {
   }
 });
 
+// --- INICIA O SERVIDOR ---
 app.listen(PORT, () => {
   console.log(`Backend rodando na porta http://localhost:${PORT}`);
 });
