@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Tabela para os Estados (ex: São Paulo - SP)
+model Estado {
+  id        Int      @id @default(autoincrement())
+  descricao String
+  sigla     String   @unique
+
+  // Relação: Um estado pode estar em muitas publicidades
+  publicidades PublicidadeEstado[]
+
+  @@map("cad_estado")
+}
+
+// Tabela para as Publicidades
+model Publicidade {
+  id                Int       @id @default(autoincrement())
+  titulo            String
+  descricao         String
+  imagem            String    // Vamos armazenar o caminho/nome do arquivo da imagem
+  botao_link        String
+  titulo_botao_link String
+  dt_inicio         DateTime
+  dt_fim            DateTime
+
+  // Relação: Uma publicidade pode ter muitos estados
+  estados PublicidadeEstado[]
+
+  @@map("cad_publicidade")
+}
+
+// Tabela de Associação (Join Table) para a relação Muitos-para-Muitos
+// entre Publicidade e Estado
+model PublicidadeEstado {
+  id              Int      @id @default(autoincrement())
+  
+  publicidade     Publicidade @relation(fields: [id_publicidade], references: [id])
+  id_publicidade  Int
+  
+  estado          Estado   @relation(fields: [id_estado], references: [id])
+  id_estado       Int
+
+  @@map("cad_publicidade_estado")
+}

@@ -1,0 +1,52 @@
+services:
+  # Serviço do Banco de Dados PostgreSQL
+  db:
+    image: postgres:14-alpine
+    container_name: db_publicidade
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: publicidade_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # Serviço do Backend (Node.js + Express) - SEM DOCKERFILE
+  backend:
+    image: node:18-alpine
+    container_name: backend_publicidade
+    restart: always
+    working_dir: /usr/app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/usr/app
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "postgresql://admin:admin@db:5432/publicidade_db?schema=public"
+      NODE_ENV: development
+    # Comando para instalar dependências e iniciar o app
+    command: >
+      sh -c "npm install && npm run dev"
+
+  # Serviço do Frontend (Angular) - SEM DOCKERFILE
+  frontend:
+    image: node:18-alpine
+    container_name: frontend_publicidade
+    restart: always
+    working_dir: /usr/app
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend:/usr/app
+    depends_on:
+      - backend
+    # Comando para instalar dependências e iniciar o Angular
+    command: >
+      sh -c "npm install && ./node_modules/.bin/ng serve --host 0.0.0.0"
+
+volumes:
+  pgdata:
